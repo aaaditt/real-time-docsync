@@ -1,14 +1,11 @@
-import * as Y from "yjs";
-import { SupabaseProvider } from "y-supabase";
-import { supabase } from "@/lib/supabase/client";
+import * as Y from 'yjs'
+import { HocuspocusProvider } from '@hocuspocus/provider'
 
-/**
- * Initialize a y-supabase Provider for a specific document.
- */
-export const createYjsProvider = (yDoc: Y.Doc, documentId: string) => {
-    return new SupabaseProvider(yDoc, supabase, {
-        channel: documentId,
-        tableName: 'document_updates',
-        columnName: 'document_update',
-    });
-};
+export function createProvider(docId: string, ydoc: Y.Doc, token: string) {
+    return new HocuspocusProvider({
+        url: process.env.NEXT_PUBLIC_HOCUSPOCUS_URL ?? 'ws://localhost:1234',
+        name: docId,
+        document: ydoc,
+        token,
+    })
+}

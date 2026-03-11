@@ -1,4 +1,4 @@
-import { Editor } from "@/components/editor/Editor";
+import EditorComponent from "@/components/editor/EditorComponent";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = 'force-dynamic';
@@ -65,7 +65,7 @@ export default async function DocumentPage({
                 {/* We will add share buttons here later */}
             </div>
 
-            <Editor documentId={documentId} />
+            <EditorComponent docId={documentId} />
         </main>
     );
 }

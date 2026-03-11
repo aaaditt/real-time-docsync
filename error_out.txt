@@ -1,0 +1,14 @@
+C:\Aadit\antig\real-time-docsync\node_modules\@supabase\supabase-js\src\lib\helpers.ts:90
+    throw new Error('Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.')
+          ^
+Error: Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.
+    at validateSupabaseUrl (C:\Aadit\antig\real-time-docsync\node_modules\@supabase\supabase-js\src\lib\helpers.ts:90:11)
+    at new SupabaseClient (C:\Aadit\antig\real-time-docsync\node_modules\@supabase\supabase-js\src\SupabaseClient.ts:284:21)
+    at createClient (C:\Aadit\antig\real-time-docsync\node_modules\@supabase\supabase-js\src\index.ts:60:10)
+    at Object.<anonymous> (C:\Aadit\antig\real-time-docsync\server\hocuspocus.ts:6:30)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Module.m._compile (C:\Aadit\antig\real-time-docsync\node_modules\ts-node\src\index.ts:1618:23)
+    at node:internal/modules/cjs/loader:1893:10
+    at Object.require.extensions.<computed> [as .ts] (C:\Aadit\antig\real-time-docsync\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
