@@ -119,5 +119,3 @@ real-time-docsync/
 | `lint` | `npm run lint` | Run ESLint |
 
 ---
-
-Built with ❤️ for seamless real-time collaboration.
