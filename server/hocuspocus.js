@@ -40,15 +40,32 @@ const server = new Server({
 
     async onLoadDocument(data) {
         const { documentName: docId, document } = data
+        try {
+            const { data: row } = await supabase
+                .from('documents')
+                .select('ydoc_state')
+                .eq('id', docId)
+                .single()
 
-        const { data: row } = await supabase
-            .from('documents')
-            .select('ydoc_state')
-            .eq('id', docId)
-            .single()
+            if (row?.ydoc_state) {
+                let update
+                if (typeof row.ydoc_state === 'string') {
+                    // Base64 encoded string
+                    update = new Uint8Array(Buffer.from(row.ydoc_state, 'base64'))
+                } else if (Array.isArray(row.ydoc_state)) {
+                    // Legacy: stored as JSON array of bytes
+                    update = new Uint8Array(row.ydoc_state)
+                } else if (row.ydoc_state instanceof Buffer || row.ydoc_state instanceof Uint8Array) {
+                    update = new Uint8Array(row.ydoc_state)
+                }
 
-        if (row?.ydoc_state) {
-            Y.applyUpdate(document, new Uint8Array(row.ydoc_state))
+                if (update && update.length > 0) {
+                    Y.applyUpdate(document, update)
+                    console.log(`[onLoadDocument] loaded doc ${docId} (${update.length} bytes)`)
+                }
+            }
+        } catch (err) {
+            console.error('[onLoadDocument] error loading, starting fresh:', err.message)
         }
         return document
     },
@@ -56,16 +73,17 @@ const server = new Server({
     async onStoreDocument(data) {
         const { documentName: docId, document } = data
         const state = Y.encodeStateAsUpdate(document)
+        const base64State = Buffer.from(state).toString('base64')
 
         await supabase
             .from('documents')
             .update({
-                ydoc_state: Buffer.from(state),
+                ydoc_state: base64State,
                 updated_at: new Date().toISOString(),
             })
             .eq('id', docId)
 
-        console.log(`[hocuspocus] saved doc ${docId}`)
+        console.log(`[hocuspocus] saved doc ${docId} (${state.length} bytes)`)
     },
 
     onConnect() { console.log('[hocuspocus] client connected') },
@@ -73,7 +91,7 @@ const server = new Server({
 })
 
 server.listen().then(() => {
-  console.log('[hocuspocus] server running on ws://localhost:1234')
+    console.log('[hocuspocus] server running on ws://localhost:1234')
 }).catch((err) => {
-  console.error('[hocuspocus] failed to start:', err)
+    console.error('[hocuspocus] failed to start:', err)
 })
