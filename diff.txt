@@ -1,0 +1,188 @@
+diff --git a/components/auth/LoginForm.tsx b/components/auth/LoginForm.tsx
+index 07a56e2..284ae72 100644
+--- a/components/auth/LoginForm.tsx
++++ b/components/auth/LoginForm.tsx
+@@ -1,12 +1,12 @@
+ "use client";
+-
+ import { useState } from "react";
+-import { supabase } from "@/lib/supabase/client";
++import { createBrowserClient } from "@/lib/supabase/client";
+ import { Button } from "@/components/ui/button";
+ import { Input } from "@/components/ui/input";
+ import { useRouter } from "next/navigation";
+ 
+ export function LoginForm() {
++    const supabase = createBrowserClient();
+     const [email, setEmail] = useState("");
+     const [password, setPassword] = useState("");
+     const [loading, setLoading] = useState(false);
+@@ -18,15 +18,18 @@ export function LoginForm() {
+         setLoading(true);
+         setError(null);
+ 
+-        // Attempt login
++        // Try sign in first
+         const { error: signInError } = await supabase.auth.signInWithPassword({
+             email,
+             password,
+         });
+ 
+         if (signInError) {
+-            // If user doesn't exist, try to auto-signup for demo simplicity
+-            if (signInError.message.includes("Invalid login")) {
++            // If no account, auto-register
++            if (
++                signInError.message.toLowerCase().includes("invalid") ||
++                signInError.message.toLowerCase().includes("not found")
++            ) {
+                 const { error: signUpError } = await supabase.auth.signUp({
+                     email,
+                     password,
+@@ -43,47 +46,53 @@ export function LoginForm() {
+             }
+         }
+ 
+-        router.push("/dashboard");
+-        router.refresh();
++        // Force hard navigation to dashboard
++        window.location.href = "/dashboard";
+     };
+ 
+     return (
+-        <div className="w-full max-w-sm mx-auto p-6 bg-white rounded-xl shadow-md border border-slate-100">
+-            <h2 className="text-2xl font-semibold mb-6 text-center text-slate-800">DocSync Login</h2>
+-            <form onSubmit={handleLogin} className="space-y-4">
+-                <div>
+-                    <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+-                    <Input
+-                        type="email"
+-                        placeholder="you@example.com"
+-                        value={email}
+-                        onChange={(e) => setEmail(e.target.value)}
+-                        required
+-                        className="w-full"
+-                    />
+-                </div>
+-                <div>
+-                    <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+-                    <Input
+-                        type="password"
+-                        placeholder="••••••••"
+-                        value={password}
+-                        onChange={(e) => setPassword(e.target.value)}
+-                        required
+-                        className="w-full"
+-                    />
+-                </div>
+-
+-                {error && <div className="text-sm text-red-500 bg-red-50 p-2 rounded-md">{error}</div>}
+-
+-                <Button
+-                    type="submit"
+-                    className="w-full"
+-                    disabled={loading}
+-                >
+-                    {loading ? "Signing in..." : "Sign In / Register"}
+-                </Button>
+-            </form>
++        <div className="min-h-screen flex items-center justify-center bg-slate-50">
++            <div className="w-full max-w-sm mx-auto p-6 bg-white rounded-xl shadow-md border border-slate-100">
++                <h2 className="text-2xl font-semibold mb-6 text-center text-slate-800">
++                    DocSync Login
++                </h2>
++                <form onSubmit={handleLogin} className="space-y-4">
++                    <div>
++                        <label className="block text-sm font-medium text-slate-700 mb-1">
++                            Email
++                        </label>
++                        <Input
++                            type="email"
++                            placeholder="you@example.com"
++                            value={email}
++                            onChange={(e) => setEmail(e.target.value)}
++                            required
++                            className="w-full"
++                        />
++                    </div>
++                    <div>
++                        <label className="block text-sm font-medium text-slate-700 mb-1">
++                            Password
++                        </label>
++                        <Input
++                            type="password"
++                            placeholder="••••••••"
++                            value={password}
++                            onChange={(e) => setPassword(e.target.value)}
++                            required
++                            className="w-full"
++                        />
++                    </div>
++                    {error && (
++                        <div className="text-sm text-red-500 bg-red-50 p-2 rounded-md">
++                            {error}
++                        </div>
++                    )}
++                    <Button type="submit" className="w-full" disabled={loading}>
++                        {loading ? "Signing in..." : "Sign In / Register"}
++                    </Button>
++                </form>
++            </div>
+         </div>
+     );
+ }
+diff --git a/lib/supabase/client.ts b/lib/supabase/client.ts
+index 80116f2..4397470 100644
+--- a/lib/supabase/client.ts
++++ b/lib/supabase/client.ts
+@@ -1,7 +1,13 @@
+-import { createClient } from "@supabase/supabase-js";
++import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr";
+ 
+-// Make sure to populate these in .env.local
+-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
++export const createBrowserClient = () =>
++  createSupabaseBrowserClient(
++    process.env.NEXT_PUBLIC_SUPABASE_URL!,
++    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
++  );
+ 
+-export const supabase = createClient(supabaseUrl, supabaseKey);
++// Legacy export for any existing code still using it
++export const supabase = createSupabaseBrowserClient(
++  process.env.NEXT_PUBLIC_SUPABASE_URL!,
++  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
++);
+\ No newline at end of file
+diff --git a/server/hocuspocus.js b/server/hocuspocus.js
+index 1a7cd92..0182ba4 100644
+--- a/server/hocuspocus.js
++++ b/server/hocuspocus.js
+@@ -1,5 +1,5 @@
+ require('dotenv/config')
+-const { Hocuspocus } = require('@hocuspocus/server')
++const { Server } = require('@hocuspocus/server')
+ const { createClient } = require('@supabase/supabase-js')
+ const Y = require('yjs')
+ 
+@@ -8,7 +8,7 @@ const supabase = createClient(
+     process.env.SUPABASE_SERVICE_ROLE_KEY
+ )
+ 
+-const server = new Hocuspocus({
++const server = new Server({
+     port: 1234,
+ 
+     async onAuthenticate(data) {
+@@ -72,5 +72,8 @@ const server = new Hocuspocus({
+     onDisconnect() { console.log('[hocuspocus] client disconnected') },
+ })
+ 
+-server.listen()
+-console.log('[hocuspocus] server running on ws://localhost:1234')
++server.listen().then(() => {
++  console.log('[hocuspocus] server running on ws://localhost:1234')
++}).catch((err) => {
++  console.error('[hocuspocus] failed to start:', err)
++})

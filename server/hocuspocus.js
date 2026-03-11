@@ -1,5 +1,5 @@
 require('dotenv/config')
-const { Hocuspocus } = require('@hocuspocus/server')
+const { Server } = require('@hocuspocus/server')
 const { createClient } = require('@supabase/supabase-js')
 const Y = require('yjs')
 
@@ -8,7 +8,7 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-const server = new Hocuspocus({
+const server = new Server({
     port: 1234,
 
     async onAuthenticate(data) {
@@ -72,5 +72,8 @@ const server = new Hocuspocus({
     onDisconnect() { console.log('[hocuspocus] client disconnected') },
 })
 
-server.listen()
-console.log('[hocuspocus] server running on ws://localhost:1234')
+server.listen().then(() => {
+  console.log('[hocuspocus] server running on ws://localhost:1234')
+}).catch((err) => {
+  console.error('[hocuspocus] failed to start:', err)
+})

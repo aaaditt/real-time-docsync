@@ -12,6 +12,12 @@ A collaborative, real-time document editing application built with Next.js, TipT
 - **Custom WebSocket Server**: Uses Hocuspocus for high-performance, real-time document state synchronization.
 - **Modern UI**: Styled with Tailwind CSS and accessible components from shadcn/ui.
 
+## 🔄 Current Progress (Update 2)
+
+- **SSR Compatibility**: Fixed initial document render hydration errors by dynamically importing the TiTap editor component to ensure client-side only execution.
+- **Enhanced Authentication**: Transitioned to `@supabase/ssr` to ensure secure browser cookie management during the login/signup flow, along with automated registration fallbacks.
+- **Robust WebSocket Server**: Reconfigured the Node.js `Hocuspocus` WebSocket server to effectively catch binding errors and execute background connection promises properly.
+
 ## 🛠️ Setup
 
 1. **Clone the repository:**
